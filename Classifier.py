@@ -96,3 +96,6 @@ class Net(nn. Module):
         return x
 
 net = Net()
+
+
+#============================Define Loss Function============================#
