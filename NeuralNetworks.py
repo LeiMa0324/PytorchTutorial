@@ -2,9 +2,9 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 import torch.optim as optim
-#https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html#sphx-glr-beginner-blitz-neural-networks-tutorial-py#
 
 '''
+https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html#sphx-glr-beginner-blitz-neural-networks-tutorial-py
 nn package
 nn 依赖于autograd定义网络并执行微分。
 nn.Module包括网络层
@@ -108,6 +108,6 @@ for i in range(10):
     output = net(input)         # 获得输出
     loss = criterion(output, target)    # 定义loss
     loss.backward()     # backprop
-    optimizer.step()    # 对parameters做更新
+    optimizer.step()    # 使用optimizef对parameters做更新
     print("net.conv1.bias.grad in %d iteration"%i)
     print(net.conv1.bias.grad)
