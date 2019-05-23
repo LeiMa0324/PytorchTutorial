@@ -5,6 +5,7 @@ from torch import autograd
 #https://pytorch.org/tutorials/beginner/blitz/autograd_tutorial.html#sphx-glr-beginner-blitz-autograd-tutorial-py#
 
 '''
+autograd package
 对于一个tensor
 requires_grad =  True, torch将track所有在改变量上的operation，默认为false
 .backward() 将自动计算所有requires_grad打开的gradients，并保存在分别的a.grad内
