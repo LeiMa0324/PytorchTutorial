@@ -6,10 +6,12 @@ import numpy as np
 import os
 import torch.nn as nn
 from torch.nn import functional as F
+import torch.optim as optim
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 '''
+@author Lei Ma
 https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html#sphx-glr-beginner-blitz-cifar10-tutorial-py
 对数据的操作：
 1. 将数据存储为numpy数组
@@ -33,6 +35,11 @@ transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5
 
 # train = True，则下载trainset，否则下载testset
 trainset = torchvision.datasets.CIFAR10(root='./data', train= True, download= True, transform= transform)
+'''
+dataloader将一个batch_size的数据封装成一个tensor
+在trainingset中一般使用shuffle
+num_workers 必须大于0，使用多个进程来导入数据，加快数据导入过程
+'''
 trainloader = torch.utils.data.DataLoader(trainset, batch_size = 4,shuffle = True, num_workers = 2)
 
 testset = torchvision.datasets.CIFAR10(root= './data', train= False, download= True, transform= transform)
@@ -84,7 +91,7 @@ class Net(nn. Module):
         self.conv2 = nn.Conv2d(6, 16, 5)
         self.fc1 = nn.Linear(16*5*5, 120)   # 输入的size，输出size
         self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
+        self.fc3 = nn.Linear(84, 10)    # 输出为10个分类的probability
 
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))    # conv->relu->pooling
@@ -98,4 +105,85 @@ class Net(nn. Module):
 net = Net()
 
 
-#============================Define Loss Function============================#
+#============================Define Loss Function and Optimizer============================#
+criterion = nn.CrossEntropyLoss()   #定义loss function
+optimizer = optim.SGD(net.parameters(), lr = 0.001, momentum= 0.9)  #定义优化器
+
+#============================Train the network============================#
+for epoch in range(2):
+    running_loss = 0.0
+    # enumerator 返回一个pair [index, array[index]]，一个元素及其下标
+    # 这里的trainloader中每一个元素为一个mini batch
+    for i, data in enumerate(trainloader, 0):
+        # get the inputs
+        inputs, labels = data   #对于一个mini batch
+
+        #清空gradients
+        optimizer.zero_grad()
+
+        # forward+backward+optimizer
+        outputs = net(inputs)   # 获取outputs
+        loss = criterion(outputs, labels)   # 计算loss
+        loss.backward()     #backpropagation
+        optimizer.step()    # update network
+
+        # print statistics
+        running_loss += loss.item() # 获取loss的python value
+        if i%2000 == 1999:   #print every 2000 mini-batches
+            print('[epoch: %d, batch num: %5d] loss: %.3f'% (epoch+1, i+1, running_loss/2000))
+            running_loss = 0.0
+
+print('Finished training')
+
+
+#============================Test on testdataset============================#
+dataiter = iter(testloader)
+images, labels = dataiter.next()
+
+#print images
+imshow(torchvision.utils.make_grid(images))
+print('GroundTruth: ', ' '.join('%5s' % classes[labels[j]] for j in range(4)))
+
+# predict
+outputs = net(images)
+'''
+max返回两个tensor
+第一个tensor为指定dimension的最大值
+第二个tensor为最大值的index
+dimension =1,选出outputs的最大值
+此处仅需要第二个tensor
+'''
+_, predicted = torch.max(outputs, 1)
+print("Predicted:", ' '.join('%5s'% classes[predicted[j]] for j in range(4)))
+
+#============================Test on whole dataset============================#
+
+correct = 0
+total = 0
+with torch.no_grad():
+    for data in testloader:
+        images, labels = data
+        outputs = net(images)
+        _,predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+print('Accuracy of the network on the 10000 test images: %d %%'%(100*correct/total))
+
+class_correct = list(0. for i in range(10))
+class_total = list(0. for i in range(10))
+with torch.no_grad():
+    for data in testloader:
+        images, labels = data
+        outputs = net(images)
+        _, predicted = torch.max(outputs, 1)
+        c = (predicted == labels).squeeze()
+        for i in range(4):
+            label = labels[i]
+            class_correct[label] += c[i].item()
+            class_total[label] += 1
+
+
+for i in range(10):
+    print('Accuracy of %5s : %2d %%' % (
+        classes[i], 100 * class_correct[i] / class_total[i]))

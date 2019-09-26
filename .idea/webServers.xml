@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="d3c50d6f-eea9-4e6f-bcdb-12f996ce9f47" name="urban" url="http://urban.cs.wpi.edu">
+        <fileTransfer host="urban.cs.wpi.edu" port="22" rootFolder="/home/lei" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
